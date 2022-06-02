@@ -1,0 +1,37 @@
+version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    restart: on-failure
+  kafka:
+    image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+    restart: on-failure
+  producer:
+    build: ./Producer
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - 3000:3000
+    volumes:
+      - /app/node_modules
+      - ./Producer:/app
+    restart: on-failure
+  consumer:
+    build: ./Consumer
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - /app/node_modules
+      - ./Consumer:/app       
+    restart: on-failure
